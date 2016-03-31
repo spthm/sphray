@@ -2,6 +2,8 @@
 
 SPHRAY was developed by Gabriel Altay and Inti Pelupessy.  This repository is a copy of the now-archived SVN repository at https://code.google.com/archive/p/sphray/.
 
+SPHRAY is released under the GNU GPL v3. See Licence.md.
+
 For an explanation of config file options, see ConfigFile.md.
 For an explanation of Makefile options, see MakeFile.md.
 
