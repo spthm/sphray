@@ -1,5 +1,7 @@
 # Options #
 
+You can find example config files in data/config/iliev_small_tests.
+
 | **Keyword** | **Type** | **Possible Values / Description** |
 |:------------|:---------|:----------------------------------|
 | `Verbosity` | Integer  | Level of screen output `{0,1,2,3`}. |
