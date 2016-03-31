@@ -1,5 +1,10 @@
 # SPHRAY #
 
+SPHRAY was developed by Gabriel Altay and Inti Pelupessy.  This repository is a copy of the now-archived SVN repository at https://code.google.com/archive/p/sphray/.
+
+For an explanation of config file options, see ConfigFile.md.
+For an explanation of Makefile options, see MakeFile.md.
+
 SPHRAY is a program for ray-tracing smoothed particle hydrodynamics (SPH) distributions to solve the radiative transfer problem.  Currently, the radiative transfer is not coupled to the hydrodynamics and so SPHRAY can be termed a post-processing radiative transfer code.  It accomplishes this goal using monte carlo ray tracing.  I've included a quick start guide on this page to help users get started.  In the external links section I've included links to public code I have made use of in SPHRAY.
 
 **WARNING**
@@ -53,7 +58,7 @@ The quickest way to get a test problem running is to follow these step by step i
 
   * Create a working directory where the code and the RTCP snapshots can be stored.  For example,
 ```
- mkdir sphray_download 
+ mkdir sphray_download
 ```
 
   * Make the working directory your current directory and enter the svn commands below to download the SPHRAY code and the snapshots to this working directory.
@@ -67,7 +72,7 @@ The quickest way to get a test problem running is to follow these step by step i
 ```
   cd sphray
   chmod u+x make_output_dirs.sh
-  ./make_output_dirs.sh 
+  ./make_output_dirs.sh
 ```
   * Make the sphray source directory your current directory, copy the Makefile template into a Makefile and compile the source.
 ```
