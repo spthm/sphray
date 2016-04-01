@@ -91,8 +91,12 @@ contains
 
 !  set the direction of the ray from the emmission profile (src%EmisPrf)
 !     0  = isotropic
-!    -1  = towards +z
-!    -2  = towards -z
+!    -1  = towards +z from z = srs%pos(3) plane
+!    -2  = towards -z from z = srs%pos(3) plane
+!    -3  = towards +y from y = srs%pos(2) plane
+!    -4  = towards -y from y = srs%pos(2) plane
+!    -5  = towards +x from x = srs%pos(1) plane
+!    -6  = towards -x from x = srs%pos(1) plane
 !
 !  note that for all point sources the luminosity is interpreted as a Flux
 !  [photons/s].
@@ -107,6 +111,10 @@ contains
        ray%dir(2) = 0.0
        ray%dir(3) = 0.0
 
+       ray%start(1) = src%pos(1)
+       ray%start(2) = box%bots(2) + genrand_real1() * box%lens(2)
+       ray%start(3) = box%bots(3) + genrand_real1() * box%lens(3)
+
     ! this makes rays go in +x direction
     !-----------------------------------------------------------------------
     case(-5)
@@ -114,6 +122,10 @@ contains
        ray%dir(1) = 1.0
        ray%dir(2) = 0.0
        ray%dir(3) = 0.0
+
+       ray%start(1) = src%pos(1)
+       ray%start(2) = box%bots(2) + genrand_real1() * box%lens(2)
+       ray%start(3) = box%bots(3) + genrand_real1() * box%lens(3)
 
     ! this makes rays go in -y direction
     !-----------------------------------------------------------------------
@@ -123,6 +135,10 @@ contains
        ray%dir(2) = -1.0
        ray%dir(3) = 0.0
 
+       ray%start(1) = box%bots(1) + genrand_real1() * box%lens(1)
+       ray%start(2) = src%pos(2)
+       ray%start(3) = box%bots(3) + genrand_real1() * box%lens(3)
+
     ! this makes rays go in +y direction
     !-----------------------------------------------------------------------
     case(-3)
@@ -130,6 +146,10 @@ contains
        ray%dir(1) = 0.0
        ray%dir(2) = 1.0
        ray%dir(3) = 0.0
+
+       ray%start(1) = box%bots(1) + genrand_real1() * box%lens(1)
+       ray%start(2) = src%pos(2)
+       ray%start(3) = box%bots(3) + genrand_real1() * box%lens(3)
 
     ! this makes rays go in -z direction
     !-----------------------------------------------------------------------
@@ -139,6 +159,10 @@ contains
        ray%dir(2) = 0.0
        ray%dir(3) = -1.0
 
+       ray%start(1) = box%bots(1) + genrand_real1() * box%lens(1)
+       ray%start(2) = box%bots(2) + genrand_real1() * box%lens(2)
+       ray%start(3) = src%pos(3)
+
     ! this makes rays go in +z direction
     !-----------------------------------------------------------------------
     case(-1)
@@ -146,6 +170,10 @@ contains
        ray%dir(1) = 0.0
        ray%dir(2) = 0.0
        ray%dir(3) = 1.0
+
+       ray%start(1) = box%bots(1) + genrand_real1() * box%lens(1)
+       ray%start(2) = box%bots(2) + genrand_real1() * box%lens(2)
+       ray%start(3) = src%pos(3)
 
     ! random direction on the unit sphere
     !-----------------------------------------------------------------------
@@ -163,6 +191,8 @@ contains
        ray%dir(2) = yy/r
        ray%dir(3) = zz/r
 
+       ray%start = src%pos
+
     case default
 
        write(*,*) "emission profile not recognized"
@@ -171,8 +201,6 @@ contains
 
     end select
     !-----------------------------------------------------------------------
-
-    ray%start = src%pos
 
     if ( present(length) ) then
        ray%length = length
