@@ -18,7 +18,7 @@ program densitytest
   use myf90, only: clen
   implicit none
 
-  
+
   type(particle_system_type) :: psys
   type(particle_header_type) :: phead
   type(nblist_type) :: nblist
@@ -29,7 +29,7 @@ program densitytest
   real :: small
   real :: cellsize(3)
   integer :: cells1d(3)
-  real :: zonesize(3),halfzone(3),quarzone(3)  
+  real :: zonesize(3),halfzone(3),quarzone(3)
 
   character(clen) :: snapfile,rhofile,ionfile,tempfile
   character(clen) :: buffer
@@ -75,8 +75,8 @@ program densitytest
     cellsize = zonesize / cells1d
     write(*,*) "cellsize = ", cellsize
     write(*,*) "zonesize = ", zonesize
-    
-    verbose = .false. 
+
+    verbose = .false.
     closefile = .true.
     call read_particle_header(snapfile,verbose,closefile,phead,lun)
     call set_necessary_globals()
@@ -84,16 +84,16 @@ program densitytest
 
     rhomin = minval(psys%par(:)%rho)
     rhomax = maxval(psys%par(:)%rho)
-    
+
     xHIImin = minval(psys%par(:)%xHII)
     xHIImax = maxval(psys%par(:)%xHII)
 
-  
+
 
 ! everything up to this point just reads in a particle system, assigns
 ! global variables, and changes the boundry conditions to periodic.
 
-! intiialize kernel density routines  
+! intiialize kernel density routines
 #ifdef incmass
   maxmass = maxval(psys%par(:)%mass)
   call initdensity(maxmass)
@@ -101,14 +101,14 @@ program densitytest
   call initdensity(gvars%iso_mass)
 #endif
 
-! initialize nblist search 
+! initialize nblist search
   call prepare_neighbor_search(psys,nblist,DfltMass,DfltTemp)
-  write(*,*) 
+  write(*,*)
 
 ! this calculates the density at the particle positions
-! (and outputs) note that the actual density calculation uses a 
-! 'local' particle type, which is a particle with some special 
-!  members exclusive for density calculation 
+! (and outputs) note that the actual density calculation uses a
+! 'local' particle type, which is a particle with some special
+!  members exclusive for density calculation
 ! (this also allows the density to be probed at any point, because lpart
 ! need not be initialized from real particles!!)
 
@@ -120,9 +120,7 @@ program densitytest
   write(*,*) "npar = ", psys%npar
   write(*,*) "min/max readin rho", rhomin, rhomax
   write(*,*) "min/max readin xHII", xHIImin, xHIImax
-#ifdef incT
   write(*,*) "min/max T", minval(psys%par(:)%T), maxval(psys%par(:)%T)
-#endif
   write(*,*) "zonesize = ", zonesize
 
   write(*,*) "tops = ", psys%box%top
@@ -135,24 +133,24 @@ program densitytest
   hh=DfltHsml
   do i = 1,cells1d(1)
 
-     if (mod(i,64)==0) write(*,'(A,F10.2)') "% done ", real(i)/cells1d(1) 
+     if (mod(i,64)==0) write(*,'(A,F10.2)') "% done ", real(i)/cells1d(1)
 
      do j = 1,cells1d(3)
 !        do k = 1,cells1d
 
-        lpart%pos(1) = -halfzone(1) + (i-0.5) * cellsize(1) 
+        lpart%pos(1) = -halfzone(1) + (i-0.5) * cellsize(1)
         lpart%pos(2) = -halfzone(3) + (j-0.5) * cellsize(3)
         lpart%pos(3) = 0.0
 
- 
+
         ! if we are outside the computational volume just set to 0.0
-        
-        small = 0.0        
+
+        small = 0.0
         if (lpart%pos(1).lt.psys%box%bot(1)+small .or. &
-            lpart%pos(2).lt.psys%box%bot(2)+small .or. & 
+            lpart%pos(2).lt.psys%box%bot(2)+small .or. &
             lpart%pos(3).lt.psys%box%bot(3)+small .or. &
             lpart%pos(1).gt.psys%box%top(1)-small .or. &
-            lpart%pos(2).gt.psys%box%top(2)-small .or. & 
+            lpart%pos(2).gt.psys%box%top(2)-small .or. &
             lpart%pos(3).gt.psys%box%top(3)-small ) then
             rho(i,j) = 0.0
             xHII(i,j) = 0.0
@@ -197,7 +195,7 @@ program densitytest
            stop
            lpart%rho = rhomax
         end if
-        
+
 
         if (lpart%xHII.lt. xHIImin) then
            write(*,*) "***************************"
@@ -232,12 +230,12 @@ program densitytest
   write(*,*) "min/max rho", minval( rho ), maxval( rho )
   write(*,*) "min/max xHII", minval( xHII ), maxval( xHII )
   write(*,*) "min/max T", minval(T), maxval(T)
-  write(*,*) 
+  write(*,*)
   write(*,*) "==========================================================="
 
-  open(unit=10,file=rhofile,status="UNKNOWN",form="unformatted")  
-  open(unit=20,file=ionfile,status="UNKNOWN",form="unformatted")  
-  open(unit=30,file=tempfile,status="UNKNOWN",form="unformatted")  
+  open(unit=10,file=rhofile,status="UNKNOWN",form="unformatted")
+  open(unit=20,file=ionfile,status="UNKNOWN",form="unformatted")
+  open(unit=30,file=tempfile,status="UNKNOWN",form="unformatted")
   write(10) rho
   write(20) xHII
   write(30) T
@@ -248,7 +246,7 @@ program densitytest
 contains
 
  subroutine set_necessary_globals()
- 
+
    integer :: NsphNnb, Npar
    real :: BoxVol, VperPar
 
@@ -265,9 +263,9 @@ contains
    psys%box%tbound=0
    psys%box%bot = minval(phead%real(5:7)%var)
    psys%box%top = maxval(phead%real(8:10)%var)
- 
+
    DfltHsml = 0.0
-   
+
  end subroutine set_necessary_globals
 
 end program densitytest
