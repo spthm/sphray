@@ -25,22 +25,22 @@ implicit none
 contains
 
 
-!> Read in planning data from the header of all snapshots 
+!> Read in planning data from the header of all snapshots
 !========================================================
-subroutine get_planning_data()  
+subroutine get_planning_data()
   character(clen), parameter :: myname="get_planning_data"
   logical, parameter :: crash=.true.
   integer, parameter :: verb=1
 
   call mywrite("getting planning data:", verb)
-  call mywrite("",verb) 
+  call mywrite("",verb)
 
 
   GV%Nsnaps = GV%EndSnapNum - GV%StartSnapNum + 1
   if (allocated(PLAN%snap)) deallocate(PLAN%snap)
   allocate( PLAN%snap(GV%StartSnapNum : GV%EndSnapNum) )
 
-  ! branch on input type 
+  ! branch on input type
   !-------------------------------------------------------------------
   select case (GV%InputType)
   case(1)
@@ -60,7 +60,7 @@ subroutine get_planning_data()
 end subroutine get_planning_data
 
 
-!> read in particle, box, and source data 
+!> read in particle, box, and source data
 !============================================
 subroutine readin_snapshot()
   character(clen), parameter :: myname="readin_snapshot"
@@ -68,23 +68,26 @@ subroutine readin_snapshot()
   integer, parameter :: verb=2
   character(clen) :: str,fmt
 
-  
+
+  real(r8b), parameter :: cpos(3) = (/5.0,3.3,3.3/)
+  real(r8b), parameter :: cradius = 0.8
   logical :: first
   real(r8b) :: MB
   integer(i8b) :: i
   real(r8b) :: a     !< scale factor
   real(r8b) :: h     !< Hubble paraemter (little H)
   real(r8b) :: Flux  !< photons / s from planar sources
+  real(r8b) :: d2    !< Square-distance of particle from clump centre (Iliev 3)
   character(clen) :: snpbase
   character(clen) :: srcbase
   type(gadget_constants_type) :: gconst
-  
+
   call mywrite("reading in particle and source snapshots:", verb-1)
-  call mywrite("",verb-1) 
+  call mywrite("",verb-1)
 
   ! set local variables
   !======================
-  a = PLAN%snap(GV%CurSnapNum)%ScalefacAt 
+  a = PLAN%snap(GV%CurSnapNum)%ScalefacAt
   h = GV%LittleH
 
   ! report readin type
@@ -101,7 +104,7 @@ subroutine readin_snapshot()
   else if (GV%InputType==5) then
      call mywrite(" Gadget-2 Public HDF5", verb)
   end if
- 
+
   ! read in the particle data
   !=============================
   first = .false.
@@ -132,19 +135,19 @@ subroutine readin_snapshot()
      else
         call update_particles()
      end if
-     
+
   ! gadget OWLS/GIMIC HDF5
   !---------------------------------------------------------------
-  else if (GV%InputType == 3) then 
-     
+  else if (GV%InputType == 3) then
+
      if (first) then
         call read_Gowls_particles()
         psys%par(:)%lasthit = 0
      else
         call update_particles()
      end if
-     
-  ! gadget w/ ions from Volker Bromm's group 
+
+  ! gadget w/ ions from Volker Bromm's group
   !---------------------------------------------------------------
   else if (GV%InputType == 4) then
 
@@ -169,7 +172,7 @@ subroutine readin_snapshot()
   ! not recognized
   !---------------------------------------------------------------
   else
-     write(str,*) "input type, ", GV%InputType, "not recognized" 
+     write(str,*) "input type, ", GV%InputType, "not recognized"
      call myerr(str,myname,crash)
   end if
 
@@ -195,9 +198,9 @@ subroutine readin_snapshot()
   call order_sources_lum(psys%src)
   psys%src%lastemit = GV%rayn
 
-  
-  ! these quantities track the photoionization rate.  they are 
-  ! rezeroed at inputs (because new source files are loaded) and 
+
+  ! these quantities track the photoionization rate.  they are
+  ! rezeroed at inputs (because new source files are loaded) and
   ! outputs (for time dependence)
   !===============================================================
 #ifdef outGammaHI
@@ -214,7 +217,7 @@ subroutine readin_snapshot()
 
 
   ! write fresh reads to the particle_data.log and source_data.log files
-  !========================================================================  
+  !========================================================================
   fmt = "(A,A)"
   write(str,fmt) "Fresh read from ", trim(snpbase)
   call particle_system_print_lun(psys, str, GV%pardatalun )
@@ -230,7 +233,7 @@ subroutine readin_snapshot()
   write(GV%srcdatalun,*) " HM01 G+C gammaHI for z = ", saved_gheads(GV%CurSnapNum,0)%z, ": ", &
        GV%UVB_gammaHI_cloudy
   write(GV%srcdatalun,*) "================================================================="
-  write(GV%srcdatalun,*) 
+  write(GV%srcdatalun,*)
 #endif
 
   write(str,fmt) "Fresh read from ", trim(srcbase)
@@ -238,7 +241,7 @@ subroutine readin_snapshot()
   write(GV%srcdatalun,*)
   write(GV%srcdatalun,*)
   flush(GV%srcdatalun)
-  
+
 
 
 
@@ -253,7 +256,7 @@ subroutine readin_snapshot()
   !=====================================================================
   fmt = "(A,F5.3,A,F5.3,A,A)"
   write(str,fmt) "After rescaling (a=",a,",h=",h,") from ", trim(snpbase)
-  call particle_system_print_lun(psys, str, GV%pardatalun ) 
+  call particle_system_print_lun(psys, str, GV%pardatalun )
 !  call psys%print_particle_info_lun(str,GV%pardatalun)
   write(GV%pardatalun,*)
   write(GV%pardatalun,*)
@@ -272,32 +275,35 @@ subroutine readin_snapshot()
   ! convert number density to flux for planar sources
   !==========================================================
   do i = 1,size(psys%src)
-     
-     if (psys%src(i)%EmisPrf == -3 .or. &
-         psys%src(i)%EmisPrf == -2 .or. &
-         psys%src(i)%EmisPrf == -1) then 
 
-        ! if this is true the input luminosity is a number density 
-        ! [photons/cm^3].  we want the flux that would produce this 
+     if (psys%src(i)%EmisPrf == -6 .or. &
+         psys%src(i)%EmisPrf == -5 .or. &
+         psys%src(i)%EmisPrf == -4 .or. &
+         psys%src(i)%EmisPrf == -3 .or. &
+         psys%src(i)%EmisPrf == -2 .or. &
+         psys%src(i)%EmisPrf == -1) then
+
+        ! if this is true the input luminosity is a number density
+        ! [photons/cm^3].  we want the flux that would produce this
         ! number density in an optically thin volume
-        
-        write(*,*) 
+
+        write(*,*)
         write(*,*) "  converting a photon number density to a flux"
         write(*,*) "  n_photon/cm^3                = ", psys%src(i)%L
-        
+
         Flux = psys%src(i)%L * gconst%c * psys%box%lens_cm(1)**2
         Flux = Flux / GV%Lunit
         psys%src(i)%L = Flux
-        
+
         write(*,*) "  photons/s from walls [1.e50] = ",  psys%src(i)%L
-        write(*,*)            
-        
+        write(*,*)
+
      end if
-     
+
   end do
 
 
-  ! check test conditionals 
+  ! check test conditionals
   !==========================================================
   if (GV%DoTestScenario) then
 
@@ -320,6 +326,19 @@ subroutine readin_snapshot()
         psys%par(:)%xHeIII = 0.0d0
 #endif
         psys%par(:)%T = 1.0d4
+
+     else if ( trim(GV%TestScenario) == "iliev_test3" ) then
+        psys%par(:)%xHII = 0.0d0
+        psys%par(:)%xHI = 1.0d0 - psys%par(:)%xHII
+
+        do i = 1,size(psys%par)
+           d2 = sum( (cpos - psys%par(i)%pos)**2 )
+           if (d2 > cradius*cradius) then
+              psys%par(i)%T = 8.0d3
+           else
+              psys%par(i)%T = 4.0d1
+           end if
+        end do
 
      end if
   end if
@@ -390,20 +409,20 @@ endif
   write(GV%pardatalun,*)
   write(GV%pardatalun,*)
   flush(GV%pardatalun)
- 
+
 
   write(str,fmt) "After test conditionals from ", trim(srcbase)
   call source_info_to_screen(psys,str,GV%srcdatalun)
   write(GV%srcdatalun,*)
   write(GV%srcdatalun,*)
   flush(GV%srcdatalun)
-  
+
 
   ! and the rest of the stuff
   !===============================================================
   GV%dt_code = PLAN%snap(GV%CurSnapNum)%RunTime / PLAN%snap(GV%CurSnapNum)%SrcRays
   call set_dt_from_dtcode( GV )
-  
+
   GV%Tcmb_cur = gconst%t_cmb0 / a
   call get_atomic_rates(GV%Tcmb_cur, rtable, cmbT_k)
 
@@ -411,12 +430,12 @@ endif
   do i = 1,size(psys%par)
      GV%total_mass = GV%total_mass + psys%par(i)%mass
   end do
-  
+
   GV%total_lum = 0.0d0
   do i = 1,size(psys%src)
      GV%total_lum = GV%total_lum + psys%src(i)%L
   end do
-  
+
   GV%total_atoms = GV%total_mass * GV%cgs_mass * &
        (GV%H_mf  / (gconst%protonmass) + &
        GV%He_mf / (4*gconst%protonmass) )
@@ -424,15 +443,15 @@ endif
 
   GV%total_photons = (GV%TotalSimTime * GV%cgs_time / GV%LittleH) * (GV%total_lum * GV%Lunit)
 
-  
+
   ! write some final data to the source log file
   !=====================================================================
   fmt = "(A,A)"
   100 format(72("-"))
-  
+
   write(GV%srcdatalun,100)
   write(GV%srcdatalun,fmt) "Ray / Luminosity info from ", trim(srcbase)
-  write(GV%srcdatalun,*) 
+  write(GV%srcdatalun,*)
   write(GV%srcdatalun,'(A,ES12.5)') "dt  [code] = ", GV%dt_code
   write(GV%srcdatalun,'(A,ES12.5)') "dt  [s]    = ", GV%dt_s
   write(GV%srcdatalun,'(A,ES12.5)') "dt  [Myr]  = ", GV%dt_myr
@@ -443,12 +462,12 @@ endif
   write(GV%srcdatalun,*)
   write(GV%srcdatalun,100)
   flush(GV%srcdatalun)
-  
+
 
   call mywrite("",verb)
 
 
- 
+
 
 end subroutine readin_snapshot
 
