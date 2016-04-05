@@ -1,6 +1,6 @@
 !> \file iliev_comparison_project.F90
 
-!> \brief Module that does special output for the 
+!> \brief Module that does special output for the
 !! Iliev Comparison Project (ICP) tests
 !<
 module iliev_comparison_project_mod
@@ -21,7 +21,7 @@ public :: iliev_test2_screen_out
 public :: iliev_test3_screen_out
 public :: iliev_test4_screen_out
 
-! some variables from astro-ph/0603199 the Cosmological RT Comparison 
+! some variables from astro-ph/0603199 the Cosmological RT Comparison
 ! Static Density Field Tests
 !---------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ public :: iliev_test4_screen_out
     real(r8b), parameter :: rtcpT1Dens = 1.0d-3                       !< nH for T1 [cm^-3]
     real(r8b), parameter :: rtcpT2Dens = 1.0d-3                       !< nH for T2 [cm^-3]
     real(r8b), parameter :: rtcpT3OutDens = 2.0d-4                    !< nH_out for T3 [cm^-3]
-    real(r8b), parameter :: rtcpT3InDens  = 200 * rtcpT3OutDens       !< nH_in for T3 [cm^-3] 
+    real(r8b), parameter :: rtcpT3InDens  = 200 * rtcpT3OutDens       !< nH_in for T3 [cm^-3]
     real(r8b), parameter :: rtcpT1Flux = 5.0d48                       !< T1 photons / s
     real(r8b), parameter :: rtcpT2Flux = 5.0d48                       !< T2 photons / s
     real(r8b), parameter :: rtcpT3Flux = 1.0d6                        !< T3 photons / s / cm^2
@@ -47,7 +47,7 @@ public :: iliev_test4_screen_out
     real(r8b), parameter :: rtcpColTime_yrs = rtcpColTime_s / year2sec        !< T1 col ion time [yrs]
     real(r8b), parameter :: rtcpEqxHII = rtcpColRate / (rtcpRecRate + rtcpColRate) !< T1 col ion eq.
 
-    
+
     real(r8b), save :: rtcpStromRad3      !< T1 Strom. Radius Cubed [cm^3]
     real(r8b), save :: rtcpStromRad_cm    !< T1 Strom. Radius [cm]
     real(r8b), save :: rtcpStromRad_kpc   !< T1 Strom. Radius [kpc]
@@ -58,10 +58,10 @@ contains
 !------------------------------------------------
 !> initialize iliev comparison project variables
   subroutine initialize_iliev_tests()
-   
-    rtcpStromRad3    = (3 * rtcpT1Flux) / (4 * pi * rtcpRecRate * rtcpT1Dens**2)  
-    rtcpStromRad_cm  = exp( 1./3. * log(rtcpStromRad3) ) 
-    rtcpStromRad_kpc = rtcpStromRad_cm / kpc2cm                
+
+    rtcpStromRad3    = (3 * rtcpT1Flux) / (4 * pi * rtcpRecRate * rtcpT1Dens**2)
+    rtcpStromRad_cm  = exp( 1./3. * log(rtcpStromRad3) )
+    rtcpStromRad_kpc = rtcpStromRad_cm / kpc2cm
 
   end subroutine initialize_iliev_tests
 
@@ -71,7 +71,7 @@ contains
 !-------------------------------
   subroutine iliev_test1_screen_out(psys,searchtree,GV)
 
-    type(particle_system_type), intent(in) :: psys  !< input particle system  
+    type(particle_system_type), intent(in) :: psys  !< input particle system
     type(oct_tree_type), intent(in) :: searchtree !< oct-tree to search
     type(global_variables_type), intent(in) :: GV  !< global variables
 
@@ -83,11 +83,11 @@ contains
     real(r8b) :: pos(3), dir(3)
     real(r8b) :: d,d1,d2,d3,d4
     integer :: i,pindx
-    
+
 !   compute analytic Stromgren radius
     time_ratio = GV%time_elapsed_s / rtcpRecTime_s
     ionRa = rtcpStromRad_kpc * (1.0d0 - exp(-time_ratio) )**(1.0/3.0)
- 
+
 !   compute numerical Stromgren radius (Volume method)
     VWionfrac = particle_system_mean_xHII_volume_weight(psys)
     ionVn = (VWionfrac - rtcpT1xHII) * psys%box%vol
@@ -101,15 +101,15 @@ contains
     ray%dir = dir
     ray%length = 10.0d0
     call src_ray_class_from_dir( ray )
-    call trace_ray(ray,raylist,psys,searchtree) 
+    call trace_ray(ray,raylist,psys,searchtree)
     do i = 1,raylist%nnb
        pindx = raylist%intersection(i)%pindx
        d = raylist%intersection(i)%d
        if (psys%par(pindx)%xHII < 0.5) exit
     end do
     d1 = raylist%intersection(i-1)%d + &
-        (raylist%intersection(i)%d - raylist%intersection(i-1)%d)/2 
-         
+        (raylist%intersection(i)%d - raylist%intersection(i-1)%d)/2
+
     d = d1
 
     call  kill_raylist(raylist)
@@ -124,15 +124,15 @@ contains
     write(*,*) "numerical/analytic (Volume) = ", ionRn / ionRa
     write(*,*) "numerical/analytic (X-axis) = ", d / ionRa
     write(*,*) "=============================================================="
-   
+
   end subroutine iliev_test1_screen_out
 
 
 
 !> iliev test 2 screen output
 !-------------------------------
-  subroutine iliev_test2_screen_out(psys,searchtree,GV)  
-    type(particle_system_type), intent(in) :: psys !< input particle system  
+  subroutine iliev_test2_screen_out(psys,searchtree,GV)
+    type(particle_system_type), intent(in) :: psys !< input particle system
     type(oct_tree_type), intent(in) :: searchtree !< oct-tree to search
     type(global_variables_type), intent(in) :: GV  !< global variables
 
@@ -148,7 +148,7 @@ contains
 !   compute analytic Stromgren radius
     time_ratio = GV%time_elapsed_s / rtcpRecTime_s
     ionRa = rtcpStromRad_kpc * (1.0d0 - exp(-time_ratio) )**(1.0/3.0)
- 
+
 !   compute numerical Stromgren radius
     VWionfrac = particle_system_mean_xHII_volume_weight(psys)
     ionVn = (VWionfrac - rtcpT2xHII) * psys%box%vol
@@ -162,15 +162,15 @@ contains
     ray%dir = dir
     ray%length = 10.0d0
     call src_ray_class_from_dir( ray )
-    call trace_ray(ray,raylist,psys,searchtree) 
+    call trace_ray(ray,raylist,psys,searchtree)
     do i = 1,raylist%nnb
        pindx = raylist%intersection(i)%pindx
        d = raylist%intersection(i)%d
        if (psys%par(pindx)%xHII < 0.5) exit
     end do
     d1 = raylist%intersection(i-1)%d + &
-        (raylist%intersection(i)%d - raylist%intersection(i-1)%d)/2 
-         
+        (raylist%intersection(i)%d - raylist%intersection(i-1)%d)/2
+
     d = d1
 
     call  kill_raylist(raylist)
@@ -194,8 +194,8 @@ contains
 !> iliev test 3 screen output
 !-------------------------------
   subroutine iliev_test3_screen_out(psys,GV)
- 
-    type(particle_system_type), intent(in) :: psys !< input particle system  
+
+    type(particle_system_type), intent(in) :: psys !< input particle system
     type(global_variables_type), intent(in) :: GV  !< global variables
 
     real(r8b), parameter :: cpos(3) = (/5.0,3.3,3.3/)
@@ -204,7 +204,7 @@ contains
 
     ! real(r8b) :: pos(3)
 
-    
+
     ! ionization fraction of the clump
     cionsum = 0.0
     Tinsum = 0.0
@@ -220,7 +220,7 @@ contains
 #ifdef incT
             Tinsum = Tinsum + psys%par(i)%T
 #endif
-       else 
+       else
           outcount = outcount + 1
           oionsum = oionsum + psys%par(i)%xHII
 #ifdef incT
@@ -228,9 +228,9 @@ contains
 #endif
        end if
     end do
-    oionsum = oionsum / outcount 
+    oionsum = oionsum / outcount
     Toutsum = Toutsum / outcount
-    cionsum = cionsum / incount 
+    cionsum = cionsum / incount
     Tinsum = Tinsum / incount
 
     100 format(A,T40,2ES12.5)
@@ -247,17 +247,22 @@ contains
 
 !> iliev test 4 screen output
 !-------------------------------
-  subroutine iliev_test4_screen_out(psys,GV)  
-    type(particle_system_type), intent(in) :: psys !< input particle system  
+  subroutine iliev_test4_screen_out(psys,GV)
+    type(particle_system_type), intent(in) :: psys !< input particle system
     type(global_variables_type), intent(in) :: GV  !< global variables
 
-    real(r8b) :: NWionfrac
+    real(r8b) :: T, NWionfrac, VWionfrac
 
+    T = sum(psys%par(:)%T) / size(psys%par)
     NWionfrac = particle_system_mean_xHII_number_weight(psys)
+    VWionfrac = particle_system_mean_xHII_volume_weight(psys)
 
     write(*,*) "=============================================================="
-    write(*,*) GV%TestScenario, " Specific Monitoring "
+    write(*,*) " Iliev Test 4 Specific Monitoring "
     write(*,*) "=============================================================="
+    write(*,*) "Ionization fraction (number weighted): ", NWionfrac
+    write(*,*) "Ionization fraction (volume weighted): ", VWionfrac
+    write(*,*) "Temperature:                           ", T
 
   end subroutine iliev_test4_screen_out
 
