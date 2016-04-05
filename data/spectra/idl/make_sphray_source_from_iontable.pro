@@ -1,6 +1,6 @@
 ; This idl procedure reads an Ionization Table in HDF5 format,
-; extracts the background UV spectra and creates .cdf, .pdf, and 
-; .src files for SPHRAY.  
+; extracts the background UV spectra and creates .cdf, .pdf, and
+; .src files for SPHRAY.
 ;
 
 
@@ -26,7 +26,7 @@ if n_params() lt 4 then begin
       print,' Output:'
       print,'       creates the files *.cdf, *.pdf, and *.src '
       print,'       ngamma     : number density of background photons'
-      print,'       my_gammaHI : photoionization rate from integrating' 
+      print,'       my_gammaHI : photoionization rate from integrating'
       return
   endif
 
@@ -49,7 +49,7 @@ input.lognumin = alog10(input.numin)
 input.lognumax = alog10(input.numax)
 
 
-; set constants 
+; set constants
 ;---------------------
 HIth = 13.606
 HeIth = 24.587
@@ -93,8 +93,8 @@ nudif    = abs( fulltable.logryd - input.lognumin )
 nudifmin = min( nudif, inu )
 
 nudif    = abs( fulltable.logryd - input.lognumax )
-nudifmin = min( nudif, fnu ) 
- 
+nudifmin = min( nudif, fnu )
+
 if ( fulltable.logryd[inu] gt input.lognumin ) then inu = inu-1
 if ( fulltable.logryd[fnu] lt input.lognumax ) then fnu = fnu+1
 
@@ -119,7 +119,7 @@ table.flux = 10^table.logflux
 ; now logryd[inu] and logryd[fnu] bracket the requested frequencies
 ;--------------------------------------------------------------------
 
-print 
+print
 print, "INPUT"
 print, "z                   = ", input.z
 print, "nu[ryd] min/max     = ", input.numin, input.numax
@@ -163,7 +163,7 @@ intrp = create_struct( 'ryd',        dblarr(nintrp),   $
                        'logpflux',   dblarr(nintrp),   $
                        'sigmaHI',    dblarr(nintrp),   $
                        'pdf',        dblarr(nintrp),   $
-                       'cdf',        dblarr(nintrp)    ) 
+                       'cdf',        dblarr(nintrp)    )
 
 
 dxintrp         = (input.lognumax - input.lognumin) / (nintrp-1)
@@ -183,14 +183,14 @@ intrp.logfluxnu = alog10(intrp.fluxnu)
 intrp.pflux     = intrp.flux / (intrp.nu * PLANCK)
 intrp.logpflux  = alog10( intrp.pflux )
 
-intrp.sigmaHI   = hi_photox_verner( intrp.ryd * 13.6d0 ) 
- 
+intrp.sigmaHI   = hi_photox_verner( intrp.ryd * 13.6d0 )
+
 
 
 ; check if integrated spectrum is equal to table gammaHI
 ;--------------------------------------------------------------------
 xx = intrp.logryd
-yy = 4.0d0 * !DPI * alog(10.d0) * intrp.pflux * intrp.nu * intrp.sigmaHI 
+yy = 4.0d0 * !DPI * alog(10.d0) * intrp.pflux * intrp.nu * intrp.sigmaHI
 my_gammaHI = int_tabulated(xx,yy, /double)
 
 print
@@ -202,8 +202,8 @@ print
 
 
 
-; now we integrate the interpolated function to calculate a 
-; probability distribution function (PDF) 
+; now we integrate the interpolated function to calculate a
+; probability distribution function (PDF)
 ;---------------------------------------------------------------
 sum = int_tabulated( intrp.nu, intrp.pflux, /double )
 intrp.pdf = intrp.pflux/sum
@@ -216,8 +216,8 @@ print, 'PDF check: ', int_tabulated( intrp.ryd, intrp.pdf, /double )
 
 
 
-; now we integrate the PDF to calculate a cumulative distribution 
-; function (CDF). 
+; now we integrate the PDF to calculate a cumulative distribution
+; function (CDF).
 ;---------------------------------------------------------------
 intrp.cdf[*]= 0.0d0
 cdfsum = 0.0d0
@@ -257,12 +257,12 @@ if doplot then begin
    altay_plot, table.logryd, alog10(table.flux * table.ryd * HIth_nu), $
                xtitle=xtitle, ytitle=ytitle, $
                thick=8, charsize=3, charthick=2, $
-               yrange=[-10,-5]   
-   altay_oplot, intrp.logryd, intrp.logfluxnu, color=250   
+               yrange=[-10,-5]
+   altay_oplot, intrp.logryd, intrp.logfluxnu, color=250
    altay_oplot, [HeIplt,  HeIplt],  ybigrange, color=150, thick=1
    altay_oplot, [HeIIplt, HeIIplt], ybigrange, color=150, thick=1
-   
-   
+
+
    ytitle= TexToIdl("Log J [erg cm^{-2} Hz^{-1} s^{-1} sr^{-1}]")
    altay_plot, table.logryd, table.logflux, $
                xtitle=xtitle, ytitle=ytitle, $
@@ -271,8 +271,8 @@ if doplot then begin
    altay_oplot, intrp.logryd, intrp.logflux, color=250
    altay_oplot, [HeIplt,  HeIplt],  ybigrange, color=150, thick=1
    altay_oplot, [HeIIplt, HeIIplt], ybigrange, color=150, thick=1
-   
-   
+
+
    xyouts, 0.3, -21.0, "z = " + input.zstr, $
            color=0, charthick=2, charsize=2
 
@@ -298,7 +298,7 @@ endif
 ;-------------------------------------------------------
 xx = intrp.ryd
 yy = (4 * !DPI / LIGHT) * intrp.pflux * HIth_nu
-ngamma = int_tabulated(xx, yy, /double) 
+ngamma = int_tabulated(xx, yy, /double)
 plane_flux = ngamma * LIGHT
 
 print
@@ -307,7 +307,7 @@ print, " F [photons / cm^2 / s] = ", plane_flux
 print
 
 
-; calculate gammaHI from number density.  this is the 
+; calculate gammaHI from number density.  this is the
 ; fairest number to compare to the code output.
 ;--------------------------------------------------------------------
 xx = intrp.ryd
@@ -352,7 +352,7 @@ if dofile then begin
    printf, lunsrc, '1.0d50  ! luminosity unit in photons/s'
    printf, lunsrc, ''
    printf, lunsrc, '! pos     | vel    | lum    |   spec    |  emis'
-   printf, lunsrc, '0.0 0.0 0.0    0.0 0.0 0.0  ', ngamma, '    1    -3'
+   printf, lunsrc, '0.0 0.0 0.0    0.0 0.0 0.0  ', ngamma, '    1    -7'
    free_lun, lunsrc
 endif
 
