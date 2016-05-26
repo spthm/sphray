@@ -1,5 +1,5 @@
 mkdir -p ../sphray_output/IT1_N128/r6
 mkdir -p ../sphray_output/IT1_He_N128/r6
 mkdir -p ../sphray_output/IT2_N128/r6
-mkdir -p ../sphray_output/IT3/r6
+mkdir -p ../sphray_output/IT3_N128/r8
 
