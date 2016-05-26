@@ -322,9 +322,8 @@ subroutine readin_snapshot()
         psys%par(:)%T = 1.0d4
 
      else if ( trim(GV%TestScenario) == "iliev_test4" ) then
-        psys%par(:)%xHI = 1.0d0
-        psys%par(:)%xHII = 1.0d0 - psys%par(:)%xHI
-
+        psys%par(:)%xHII = 0.0d0
+        psys%par(:)%xHI = 1.0d0 - psys%par(:)%xHII
         psys%par(:)%T = 1.0d2
 
      end if
