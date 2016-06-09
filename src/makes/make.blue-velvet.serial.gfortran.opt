@@ -1,5 +1,5 @@
 FC= gfortran
-FFLAGS= -g -cpp -O5
+FFLAGS= -g -cpp -O3
 
 
 ISLIB= -L
